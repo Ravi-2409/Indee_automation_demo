@@ -15,6 +15,7 @@ class VideoPage(BasePage):
         super().__init__(driver)  # Initialize the parent class (BasePage)
         
         # Locators for various video controls and elements on the page
+        self.all_titles = (By.XPATH,"//p[text()=' All Titles ']")
         self.play_button = (By.XPATH, "//button[@aria-label='Play Video']")  # Locator for play button
         self.video_element = (By.XPATH, "//video[@class='jw-video jw-reset']")  # Locator for video element
         self.project_page = (By.XPATH, "//img[@alt='Test automation project']")
@@ -40,6 +41,19 @@ class VideoPage(BasePage):
         self.wait_for_element(*self.play_button)  # Wait until play button is visible
         self.click(*self.play_button)  # Click the play button to start the video
         time.sleep(2)  # Sleep for 2 seconds after clicking the play button
+    
+    def navigate_to_all_titles(self):
+        """
+        Scrolls the 'All Titles' element into view.
+        """
+        # Wait for the 'All Titles' element to be present
+        self.wait_for_element(*self.all_titles)
+        
+        # Scroll the 'All Titles' element into view
+        self.driver.execute_script("arguments[0].scrollIntoView();", self.find_element(*self.all_titles))
+        
+        # Optionally, you can log or print that the element is now in view.
+        print("'All Titles' element has been scrolled into view.")
 
     def switch_to_video_iframe(self):
         """
