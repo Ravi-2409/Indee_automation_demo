@@ -2,6 +2,7 @@ from selenium.webdriver.common.by import By
 from pages.base_page import BasePage
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.keys import Keys
+from pages.project_page import ProjectPage
 import time
 
 class VideoPage(BasePage):
@@ -14,23 +15,30 @@ class VideoPage(BasePage):
         super().__init__(driver)  # Initialize the parent class (BasePage)
         
         # Locators for various video controls and elements on the page
-        self.play_button = (By.XPATH, "//button[@aria-label='Play Video']")
-        self.video_element = (By.XPATH, "//video[@class='jw-video jw-reset']")
-        self.continue_watching_button = (By.XPATH, "//button[@aria-label='Continue Watching']")
-        self.volume_slider = (By.XPATH, "//div[@aria-label='Mute button'] | //div[@aria-label='Unmute button']")
-        self.settings_menu = (By.XPATH, "//div[@aria-label='Settings']")
-        self.resolution_480p = (By.XPATH, "//button[@class='jw-reset-text jw-settings-content-item' and text()='480p']")
-        self.resolution_720p = (By.XPATH, "//button[@class='jw-reset-text jw-settings-content-item' and text()='720p']")
-        self.pause_button = (By.XPATH, "//div[@class='jw-icon jw-icon-inline jw-button-color jw-reset jw-icon-playback' and @aria-label='Play'] | //div[@class='jw-icon jw-icon-inline jw-button-color jw-reset jw-icon-playback' and @aria-label='Pause']")
-        self.back_button = (By.XPATH, "//div/button[@aria-label='Go Back and continue playing video']")
-        self.logout_button = (By.ID, "signOutSideBar")
+        self.play_button = (By.XPATH, "//button[@aria-label='Play Video']")  # Locator for play button
+        self.video_element = (By.XPATH, "//video[@class='jw-video jw-reset']")  # Locator for video element
+        self.project_page = (By.XPATH, "//img[@alt='Test automation project']")
+        self.continue_watching_button = (By.XPATH, "//button[@aria-label='Continue Watching']")  # Locator for 'Continue Watching' button
+        self.volume_slider = (By.XPATH, "//div[@aria-label='Mute button'] | //div[@aria-label='Unmute button']")  # Locator for volume control (mute/unmute)
+        self.settings_menu = (By.XPATH, "//div[@aria-label='Settings']")  # Locator for settings menu
+        self.resolution_480p = (By.XPATH, "//button[@class='jw-reset-text jw-settings-content-item' and text()='480p']")  # Locator for 480p resolution option
+        self.resolution_720p = (By.XPATH, "//button[@class='jw-reset-text jw-settings-content-item' and text()='720p']")  # Locator for 720p resolution option
+        self.pause_button = (By.XPATH, "//div[@class='jw-icon jw-icon-inline jw-button-color jw-reset jw-icon-playback' and @aria-label='Play'] | //div[@class='jw-icon jw-icon-inline jw-button-color jw-reset jw-icon-playback' and @aria-label='Pause']")  # Locator for play/pause button
+        self.back_button = (By.XPATH, "//div/button[@aria-label='Go Back and continue playing video']")  # Locator for back button
+        self.logout_button = (By.ID, "signOutSideBar")  # Locator for logout button
+
+    def get_logout_button(self):
+        """
+        Waits for the logout button to be visible on the page.
+        """
+        self.wait_for_element(*self.logout_button)  # Wait for the logout button element to be visible
 
     def play_video(self):
         """
         Click the play button to start video playback if the play button is visible.
         """
         self.wait_for_element(*self.play_button)  # Wait until play button is visible
-        self.click(*self.play_button)  # Click the play button
+        self.click(*self.play_button)  # Click the play button to start the video
         time.sleep(2)  # Sleep for 2 seconds after clicking the play button
 
     def switch_to_video_iframe(self):
@@ -39,22 +47,22 @@ class VideoPage(BasePage):
         Handles iframe switching for video controls interaction.
         """
         try:
-            # Wait for the iframe to be present in DOM
+            # Wait for the iframe to be present in the DOM and switch to it
             self.wait_for_element(By.ID, "video_player")  # Wait for iframe to be present
             iframe = self.find_element(By.ID, "video_player")  # Find the iframe element
-            self.driver.switch_to.frame(iframe)  # Switch to the iframe that contains the video player
+            self.driver.switch_to.frame(iframe)  # Switch to the iframe containing the video player
             print("Switched to video iframe successfully.")
         except Exception as e:
-            print(f"Error switching to iframe: {e}")
+            print(f"Error switching to iframe: {e}")  # Log error if iframe switch fails
 
     def hover_over_video(self):
         """
         Hover over the video player to make video controls visible (like play/pause buttons, volume slider).
         """
-        # Wait for video player container to be present
+        # Wait for video player container to be present before hovering
         video_player_container = self.wait_for_element(By.ID, "media-player")
         
-        # Create ActionChains object to simulate mouse movements
+        # Create ActionChains object to simulate mouse movements and hover over the video player
         actions = ActionChains(self.driver)
         
         # Hover over the video player container to trigger floating buttons and controls
@@ -64,9 +72,9 @@ class VideoPage(BasePage):
         """
         Click the pause button to pause the video playback.
         """
-        self.switch_to_video_iframe()  # Switch to the video iframe
-        self.hover_over_video()  # Hover over the video to make the controls visible
-        self.click(*self.pause_button)  # Click on the pause/play button to toggle video pause/play
+        self.switch_to_video_iframe()  # Switch to the video iframe if not already inside
+        self.hover_over_video()  # Hover over the video to reveal controls
+        self.click(*self.pause_button)  # Click the play/pause button to toggle video pause/play
 
     def continue_watching(self):
         """
@@ -81,9 +89,9 @@ class VideoPage(BasePage):
         This can simulate key presses to change the volume.
         """
         self.switch_to_video_iframe()  # Switch to the video iframe
-        self.hover_over_video()  # Hover over the video player to activate controls
+        self.hover_over_video()  # Hover over the video player to make controls visible
 
-        video_player_container = self.wait_for_element(By.ID, "media-player")
+        video_player_container = self.wait_for_element(By.ID, "media-player")  # Wait for video player container to be visible
 
         # Use ActionChains to hover over the volume slider element
         action = ActionChains(self.driver)
@@ -114,11 +122,11 @@ class VideoPage(BasePage):
         self.hover_over_video()  # Hover over the video player to activate controls
         self.click(*self.settings_menu)  # Click on the settings menu to open resolution options
         
-        # Change resolution based on the argument passed
+        # Change resolution based on the argument passed (either 480p or 720p)
         if resolution == '480p':
-            self.click(*self.resolution_480p)  # Click 480p button
+            self.click(*self.resolution_480p)  # Click the 480p button to change resolution
         elif resolution == '720p':
-            self.click(*self.resolution_720p)  # Click 720p button
+            self.click(*self.resolution_720p)  # Click the 720p button to change resolution
 
     def navigate_back(self):
         """
@@ -131,8 +139,8 @@ class VideoPage(BasePage):
         """
         Click the logout button to log out from the application.
         """
-        time.sleep(5)  # Allow 5 seconds to make sure the page is ready
-
+        
+        self.wait_for_element(*self.project_page)
         try:
             # Check if the browser is inside an iframe and handle it accordingly
             is_in_iframe = self.driver.execute_script("return window.self !== window.top;")
@@ -145,7 +153,7 @@ class VideoPage(BasePage):
             # Wait for the logout button to be clickable
             self.wait_for_element(*self.logout_button)
 
-            # Click on the logout button to log out
+            # Click on the logout button to log out from the application
             self.click(*self.logout_button)
             print("Logout button clicked successfully.")
 

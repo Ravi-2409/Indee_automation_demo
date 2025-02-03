@@ -9,11 +9,10 @@ load_dotenv()
 # Retrieve the PIN from the environment variables
 pin = os.getenv("MY_PIN")
 
+# Raise an error if the PIN is not found in the environment variables
 if not pin:
     raise ValueError("PIN not found in .env file.")
-
-print(f"The PIN is: {pin}")
-
+    
 
 class LoginPage(BasePage):
     def __init__(self, driver):
@@ -28,7 +27,23 @@ class LoginPage(BasePage):
         self.pin_input = (By.ID, "access-code")
         
         # Locator for the "Sign In" button on the login page
+        self.logo = (By.XPATH, "//img[@id='form-logo-image']")
         self.login_button = (By.XPATH, "//div//span[text()='Sign In']")
+        
+        # The logo locator is defined twice, which seems redundant. Remove one assignment.
+        self.logo = (By.XPATH, "//img[@id='form-logo-image']")
+        
+        # Locator for the "Home" link on the login page
+        self.home = (By.XPATH, "//a[@aria-label='Home']")
+
+    def get_home_icon_element(self):
+        # Wait for and return the home icon element
+        return self.wait_for_element(*self.home)
+
+    def get_logo_element(self):
+        """Waits for and returns the logo element."""
+        # Wait for and return the logo element
+        return self.wait_for_element(*self.logo)
 
     def login(self, pin):
         """

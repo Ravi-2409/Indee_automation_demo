@@ -8,10 +8,11 @@ import time  # Importing the time module to introduce delays between actions.
 from selenium.webdriver.common.by import By  # Importing 'By' to locate elements.
 from selenium.webdriver.support.ui import WebDriverWait  # Importing WebDriverWait to wait for elements.
 from selenium.webdriver.support import expected_conditions as EC  # Importing expected conditions for element visibility.
-import config
+import config  # Importing the config file for base URL and other configurations.
+from pages.base_page import BasePage  # Importing the BasePage class to create reusable methods for page actions.
 
-from dotenv import load_dotenv
-import os
+from dotenv import load_dotenv  # Importing dotenv to load environment variables from .env file.
+import os  # Importing os module for environment variable handling.
 
 # Load environment variables from the .env file
 load_dotenv()
@@ -19,10 +20,9 @@ load_dotenv()
 # Retrieve the PIN from the environment variables
 pin = os.getenv("MY_PIN")
 
+# Raise an error if the PIN is not found in the environment variables
 if not pin:
     raise ValueError("PIN not found in .env file.")
-
-print(f"The PIN is: {pin}")
 
 # Step for navigating to the login page
 @given('I am on the login page')
@@ -30,58 +30,68 @@ def step_impl(context):
     # Initialize the WebDriver (Chrome in this case)
     context.driver = webdriver.Chrome()  # Ensure chromedriver is set in PATH
     context.driver.get(config.BASE_URL)  # Open the login page URL.
+    
     # Maximize the browser window for a consistent testing environment
     context.driver.maximize_window()
 
     # Initialize the LoginPage class for interaction with the login page
     context.login_page = LoginPage(context.driver)
-
-    # Wait for the logo element to be visible on the screen to confirm we are on the correct page
-    wait = WebDriverWait(context.driver, 10)  # Timeout after 10 seconds
-    logo = wait.until(EC.visibility_of_element_located((By.XPATH, "//img[@id='form-logo-image']")))
-
-    print("Logo is visible on the screen")  # Log that the logo is visible
-
-    # Optional: Keep browser open for verification (remove in production)
-    time.sleep(5)  # Wait for 5 seconds to manually verify the page before proceeding.
+    # Assert that the logo element is displayed to ensure the page is loaded properly
+    assert context.login_page.get_logo_element().is_displayed()
 
 # Step for logging in with a provided PIN
 @when('I login with the provided PIN')
 def step_impl(context):
+    # Reinitialize the LoginPage class for the login action
+    context.login_page = LoginPage(context.driver)
     # Call the login method from the LoginPage class and pass the PIN
     context.login_page.login(str(pin))
-    # Wait for the Home icon to become visible, indicating successful login
-    wait = WebDriverWait(context.driver, 10) 
-    HomeIcon = wait.until(EC.visibility_of_element_located((By.XPATH, "//a[@aria-label='Home']")))
-    time.sleep(5)  # Wait for the login process to complete (e.g., redirection).
+    # Initialize the ProjectPage class to interact with the project page after login
+    context.project_page = ProjectPage(context.driver)
+    # Assert that the project page is displayed after successful login
+    assert context.project_page.get_project_page().is_displayed()
 
 # Step for navigating to the Test Automation Project
 @when('I navigate to the Test Automation Project')
 def step_impl(context):
-    # Initialize the ProjectPage class and open the Test Automation Project page
+    # Reinitialize the ProjectPage class for navigation
     context.project_page = ProjectPage(context.driver)
+    # Assert that the project page is displayed
+    assert context.project_page.get_project_page().is_displayed()
+    # Open the Test Automation Project from the ProjectPage
     context.project_page.open_test_automation_project()
 
 # Step for switching to the 'Details' tab of the project
 @when('I switch to the Details tab')
 def step_impl(context):
-    # Switch to the 'Details' tab
+    # Reinitialize the ProjectPage class for interacting with the project
+    context.project_page = ProjectPage(context.driver)
+    # Assert that the Details tab is displayed
+    assert context.project_page.get_details_tab().is_displayed()
+    # Switch to the Details tab
     context.project_page.switch_to_details_tab()
-    time.sleep(5)  # Wait for the page to load after switching tabs.
+    # Wait for the page to load after switching tabs
+    time.sleep(5)
 
 # Step for returning to the 'Videos' tab of the project
 @when('I return to the Videos tab')
 def step_impl(context):
-    # Switch to the 'Videos' tab
+    # Reinitialize the ProjectPage class for interacting with the project
+    context.project_page = ProjectPage(context.driver)
+    # Assert that the Videos tab is displayed
+    assert context.project_page.get_videos_tab().is_displayed()
+    # Switch to the Videos tab
     context.project_page.switch_to_videos_tab()
 
 # Step for playing the video
 @when('I play the video')
 def step_impl(context):
-    # Initialize the VideoPage class and play the video
+    # Initialize the VideoPage class to interact with the video player
     context.video_page = VideoPage(context.driver)
+    # Call the play_video method from the VideoPage class to start the video
     context.video_page.play_video()
-    time.sleep(10)  # Wait for 10 seconds to allow the video to play for a brief period.
+    # Wait for 10 seconds to allow the video to play for a brief period
+    time.sleep(10)
 
 # Step for pausing the video
 @when('I pause the video')
@@ -89,6 +99,8 @@ def step_impl(context):
     # Initialize the VideoPage class and pause the video
     context.video_page = VideoPage(context.driver)
     context.video_page.pause_video()
+    # Wait for 2 seconds before performing the next action
+    time.sleep(2)
 
 # Step for continuing the video from the pause state
 @when('I continue watching the video')
@@ -110,7 +122,9 @@ def step_impl(context):
     # Initialize the VideoPage class and change the resolution
     context.video_page = VideoPage(context.driver)
     context.video_page.change_resolution('480p')
-    time.sleep(2)  # Wait for 2 seconds before switching resolution again
+    # Wait for 2 seconds before switching resolution again
+    time.sleep(2)
+    # Change the resolution back to 720p
     context.video_page.change_resolution('720p')
 
 # Step for pausing the video and navigating back
@@ -120,6 +134,8 @@ def step_impl(context):
     context.video_page = VideoPage(context.driver)
     context.video_page.pause_video()
     context.video_page.navigate_back()
+    # Assert that the project page is displayed after navigating back
+    assert context.project_page.get_project_page().is_displayed()
 
 # Step for logging out from the application
 @when('I log out')
@@ -127,7 +143,6 @@ def step_impl(context):
     # Initialize the VideoPage class and call the logout method
     context.video_page = VideoPage(context.driver)
     context.video_page.logout()
-    time.sleep(3)  # Wait for the logout process to complete.
 
 # Step for verifying that the user is logged out successfully
 @then('I should see the logout successful')
@@ -136,4 +151,4 @@ def step_impl(context):
     context.logout_page = LogoutPage(context.driver)
     context.logout_page.verify_login_page()
     # Close the browser after the verification is done
-    context.driver.quit()
+    context.logout_page.close_browser()

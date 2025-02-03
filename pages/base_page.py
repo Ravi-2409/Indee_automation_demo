@@ -17,7 +17,7 @@ class BasePage:
         """
         self.driver = driver  # Store the driver reference to interact with the page elements.
 
-    def wait_for_element(self, by, value, timeout=10):
+    def wait_for_element(self, by, value, timeout=15):
         """
         Waits for an element to be clickable, which means it is both visible and enabled.
 

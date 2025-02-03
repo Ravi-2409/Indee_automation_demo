@@ -17,9 +17,20 @@ class ProjectPage(BasePage):
 
         # Locators for various elements on the project page
         self.test_automation_title = (By.XPATH, "//div/h5[text()='Test automation project']")  # Locator for the "Test automation project" title
+
         self.details_tab = (By.ID, "detailsSection")  # Locator for the "Details" tab
         self.videos_tab = (By.ID, "videosSection")  # Locator for the "Videos" tab
+        self.project_page = (By.XPATH, "//img[@alt='Test automation project']")
 
+    def get_details_tab(self):
+        return self.wait_for_element(*self.details_tab)
+    
+    def get_videos_tab(self):
+        return self.wait_for_element(*self.videos_tab)
+
+    def get_project_page(self):
+        return self.wait_for_element(*self.project_page)
+    
     def open_test_automation_project(self):
         """
         Open the 'Test Automation Project' page by scrolling to the element and clicking it.
